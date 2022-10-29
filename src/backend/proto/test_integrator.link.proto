@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package testpaymentintegrator;
+
+option go_package = "cognitivetesting.org/qlist/protos/testpaymentintegrator";
+
+service TestPaymentIntegrator {
+   rpc PublishTest(PublishAction) returns (Test) {}
+   rpc QualifyUserTestAndSession(SessionAction) returns (TestSession) {}
+   rpc InitiateTestSession(SessionAction) returns (TestSession) {}
+}
+
+message PublishAction {
+   string testId = 1;
+   string priceId = 2;
+}
+
+message Test {
+   string id = 1;
+}
+
+message SessionAction {
+   string userId = 1;
+   string sessionId = 2;
+   string sessionUrl = 3;
+   string testId = 4;
+}
+
+message TestSession {
+   bool isValid = 1;
+   bool isPermitted = 2;
+   string url = 3;
+}
