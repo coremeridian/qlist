@@ -1,10 +1,10 @@
 const { ProvidePlugin, HotModuleReplacementPlugin } = require("webpack");
 const { ModuleFederationPlugin } = require("webpack").container;
+const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
+const { merge } = require("webpack-merge");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
-const { merge } = require("webpack-merge");
 const path = require("path");
 const pkg = require("./package.json");
 

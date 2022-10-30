@@ -3,7 +3,7 @@ const formSpaceSeparatedList = (list) => list.join(" ");
 const WebAppPolicy = (() => {
     const self = {
         scriptSrcAllowList: [],
-        styleSrcAllowList: [],
+        styleSrcAllowList: ["https://fonts.googleapis.com"],
         fontSrcAllowList: ["https://fonts.gstatic.com"],
         // For endpoints we would like to connect to i.e. make XHR requests, Events, WebSockets in our app
         connectSrcAllowList: [],
