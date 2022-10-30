@@ -7,9 +7,15 @@ export const handler = async (event) => {
     const { request, response } = event.Records[0].cf;
 
     const mimeType = mime.contentType(path.extname(request.uri));
-    const contentType = !!mimeType
-        ? [{ key: "Content-Type", value: mimeType }]
-        : response.headers["Content-Type"];
+    const contentType = [
+        {
+            key: "Content-Type",
+            value:
+                mimeType ??
+                response.headers["Content-Type"]["value"] ??
+                "text/html",
+        },
+    ];
 
     response.headers = {
         ...response.headers,
