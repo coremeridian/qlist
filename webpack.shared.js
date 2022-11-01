@@ -1,8 +1,11 @@
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const devMode = process.env.NODE_ENV !== "production";
+const path = require("path");
 
 module.exports = {
     experiments: { topLevelAwait: true },
@@ -79,6 +82,13 @@ module.exports = {
     },
     plugins: [
         new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            inject: "body",
+            template: path.resolve(__dirname, "./public/index.html"),
+        }),
+        new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
+            PUBLIC_URL: "/public",
+        }),
         new MiniCssExtractPlugin({
             filename: devMode
                 ? "static/[name].css"

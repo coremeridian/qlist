@@ -1,15 +1,24 @@
 import React from "react";
 import * as Koa from "koa";
 import Root from "@App";
-import { renderToPipeableStream } from "react-dom/server";
+import renderFromStream from "./renderStream";
 import { StaticRouter } from "react-router-dom/server";
 import { ServerStyleSheet } from "styled-components";
 import { files } from "../config";
 import { reduxPersistStore } from "./reduxPersist";
 import { fetchAuthConfig } from "@App/config";
-import type { ConfigReader, ServerConfigReader } from "@App/config";
+import { injectApplicationState } from "./helpers";
+import type { ConfigReader } from "@App/config";
 
 const { readFile } = require("fs/promises");
+
+interface ApplicationState {
+    markup: string;
+    markupState?: string;
+    dataState: { [key: string]: string };
+    stylesheets: ServerStyleSheet;
+    //    context: { [key: string]: string };
+}
 
 const configReader: ConfigReader = fetchAuthConfig(true);
 
@@ -19,15 +28,21 @@ export const render = async (
     Tree: React.FC
 ): Promise<String> => {
     let html;
-    const context = {};
-    const sheets = new ServerStyleSheet();
 
     try {
+        const context = {};
+        const stylesheets = new ServerStyleSheet();
+        global.window = {} as Window & typeof globalThis;
+
         html = await htmlFile;
         const { store, preloadedState } = await reduxPersistStore(ctx);
-        const markup = renderToPipeableStream(
-            sheets.collectStyles(
-                <Root store={store} configReader={configReader}>
+        const markupState = await renderFromStream(
+            stylesheets.collectStyles(
+                <Root
+                    store={store}
+                    configReader={configReader}
+                    helmetContext={context}
+                >
                     <StaticRouter location={ctx.req.url ?? "/"}>
                         <Tree />
                     </StaticRouter>
@@ -35,29 +50,18 @@ export const render = async (
             )
         );
 
-        html.replace('<div id="root"></div>', `<div id="root">${markup}</div>`);
-        html.replace(
-            "</script>",
-            `</script><script>window.__PRELOADED_STATE__ = ${JSON.stringify(
-                preloadedState
-            ).replace(/</g, "\\u003c")}</script>`
-        );
-        if (context.helmet) {
-            html.replace("<title>App</title>", context.helmet.title.toString())
-                .replace("</head>", `${context.helmet.meta.toString()}</head>`)
-                .replace("</head>", `${context.helmet.link.toString()}</head>`)
-                .replace(
-                    "</head>",
-                    `${context.helmet.script.toString()}</head>`
-                )
-                .replace("</head>", `${sheets.getStyleTags()}</head>`);
-        }
+        html = injectApplicationState(ctx, {
+            markup: html,
+            dataState: preloadedState,
+            markupState,
+            stylesheets,
+        });
     } catch (error) {
         console.error("Render Error:", error);
     } finally {
-        sheets.seal();
         return html;
     }
 };
 
+export type { ApplicationState };
 export default render;

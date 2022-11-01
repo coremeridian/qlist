@@ -23,6 +23,7 @@ const AppLoader = (configReader: ConfigReader, store, children) => (props) => {
 
 const AppLayer = ({
     configReader,
+    helmetContext,
     store,
     children,
 }: {
@@ -30,17 +31,19 @@ const AppLayer = ({
 }) => {
     const LoadedCore = configReader.fromServer
         ? AppLoader(
-            configReader,
-            store,
-            <HelmetProvider>{children}</HelmetProvider>
-        )
+              configReader,
+              store,
+              <HelmetProvider context={helmetContext}>
+                  {children}
+              </HelmetProvider>
+          )
         : AppLoader(
-            configReader,
-            store,
-            <PersistGate loading={null} persistor={useStorePersistor(store)}>
-                <HelmetProvider>{children}</HelmetProvider>
-            </PersistGate>
-        );
+              configReader,
+              store,
+              <PersistGate loading={null} persistor={useStorePersistor(store)}>
+                  <HelmetProvider>{children}</HelmetProvider>
+              </PersistGate>
+          );
 
     return (
         <React.Suspense

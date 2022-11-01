@@ -4,7 +4,7 @@ const path = require("path");
 const mime = require("mime-types");
 
 export const handler = async (event) => {
-    const { request, response } = event.Records[0].cf;
+    const { request, response, config } = event.Records[0].cf;
 
     const mimeType = mime.contentType(path.extname(request.uri));
     const contentType = [
@@ -26,7 +26,9 @@ export const handler = async (event) => {
         "content-security-policy": [
             {
                 key: "Content-Security-Policy",
-                value: WebAppPolicy.generateContentSecurityPolicy(),
+                value: WebAppPolicy.generateContentSecurityPolicy(
+                    config.requestId
+                ),
             },
         ],
         "strict-transport-security": [

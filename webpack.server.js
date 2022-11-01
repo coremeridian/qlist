@@ -1,15 +1,13 @@
-const { ModuleFederationPlugin } = require("webpack").container;
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const TerserPlugin = require("terser-webpack-plugin");
-const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
+//const { ModuleFederationPlugin } = require("webpack").container;
+//const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+//const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const { mergeWithRules } = require("webpack-merge");
-const nodeExternals = require("webpack-node-externals");
-const WebpackShellPluginNext = require("webpack-shell-plugin-next");
+//const nodeExternals = require("webpack-node-externals");
+//const WebpackShellPluginNext = require("webpack-shell-plugin-next");
 const path = require("path");
-const pkg = require("./package.json");
+//const pkg = require("./package.json");
 
 module.exports = (env, args) => {
     const isProduction = args.mode === "production";
@@ -71,12 +69,6 @@ module.exports = (env, args) => {
                     parallel: false,
                 },
             }),*/
-            new HtmlWebpackPlugin({
-                template: path.resolve(__dirname, "./public/index.html"),
-            }),
-            new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
-                PUBLIC_URL: "/public",
-            }),
             new CopyPlugin({
                 patterns: [
                     path.resolve(

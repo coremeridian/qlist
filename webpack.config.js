@@ -4,11 +4,41 @@ const { WebpackManifestPlugin } = require("webpack-manifest-plugin");
 const { merge } = require("webpack-merge");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
-const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
 const path = require("path");
 const pkg = require("./package.json");
 
-const publicUrl = "/public";
+function NoncePlaceholder() { }
+Object.setPrototypeOf(
+    NoncePlaceholder.prototype,
+    Object.create({
+        apply(compiler) {
+            compiler.hooks.thisCompilation.tap(
+                "NoncePlaceholder",
+                (compilation) => {
+                    HtmlWebpackPlugin.getHooks(
+                        compilation
+                    ).afterTemplateExecution.tapAsync(
+                        "NoncePlaceholder",
+                        (data, callbackify) => {
+                            const { headTags, bodyTags } = data;
+                            headTags.forEach(
+                                (x) =>
+                                    x.tagName === "script" &&
+                                    (x.attributes.nonce = "**CSP_NONCE**")
+                            );
+                            bodyTags.forEach(
+                                (x) =>
+                                    x.tagName === "script" &&
+                                    (x.attributes.nonce = "**CSP_NONCE**")
+                            );
+                            callbackify(null, data);
+                        }
+                    );
+                }
+            );
+        },
+    })
+);
 
 module.exports = (env, args) => {
     const isProduction = process.env.NODE_ENV === "production";
@@ -63,9 +93,8 @@ module.exports = (env, args) => {
                     },
                 },
             }),*/
-            new HtmlWebpackPlugin({
-                template: path.resolve(__dirname, "./public/index.html"),
-            }),
+
+            new NoncePlaceholder(),
             new CopyPlugin({
                 patterns: [
                     path.resolve(
@@ -77,9 +106,6 @@ module.exports = (env, args) => {
             }),
             new WebpackManifestPlugin({
                 basePath: outputPath,
-            }),
-            new InterpolateHtmlPlugin(HtmlWebpackPlugin, {
-                PUBLIC_URL: publicUrl,
             }),
             new ProvidePlugin({
                 process: "process/browser",
