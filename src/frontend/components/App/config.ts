@@ -2,7 +2,7 @@ import { WebStorageStateStore, InMemoryWebStorage } from "oidc-client-ts";
 
 const appConfig = {
     base: "https://qlist.coremeridian.xyz",
-    auth: "https://secrets.coremeridian.xyz/auth/realms/Qlist",
+    auth: "https://auth.coremeridian.xyz/realms/Qlist",
     testsApi: "https://api.coremeridian.xyz/psychom",
 };
 
@@ -28,14 +28,14 @@ const authConfig = {
         (isProduction
             ? appConfig.base
             : module.hot
-                ? process.env.HOTLOCALMAIN_URL
-                : "http://localhost:3100") + "/tests",
+            ? process.env.HOTLOCALMAIN_URL
+            : "http://localhost:3100") + "/tests",
     silent_redirect_uri:
         (isProduction
             ? appConfig.base
             : module.hot
-                ? process.env.HOTLOCALMAIN_URL
-                : "http://localhost:3100") + "/silent-check-sso.html",
+            ? process.env.HOTLOCALMAIN_URL
+            : "http://localhost:3100") + "/silent-check-sso.html",
     skipSigninCallback:
         globalThis?.window?.location.pathname !== "/tests" ?? null,
     onSigninCallback: signInCallback,

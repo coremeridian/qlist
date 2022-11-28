@@ -1,4 +1,4 @@
-const App = require("../../../App").default;
+const App = require("@App").default;
 const render = require("../../lib/render").default;
 const crypto = require("crypto");
 const { setHeaders } = require("../../lib/helpers");

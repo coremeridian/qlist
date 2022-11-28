@@ -36,13 +36,13 @@ module.exports = {
                                 "babel-plugin-module-resolver",
                                 {
                                     alias: {
-                                        "@server": "./src/ssr/server",
-                                        "@edge": "./src/ssr/edge",
-                                        "@App": "./src/components/App",
-                                        components: "./src/components",
-                                        "@areas": "./src/components/areas",
+                                        "@server": "./src/backend/server",
+                                        "@App": "./src/frontend/components/App",
+                                        components: "./src/frontend/components",
+                                        "@areas":
+                                            "./src/frontend/components/areas",
                                         "@features":
-                                            "./src/components/features",
+                                            "./src/frontend/components/features",
                                         "@CompanyTypes": "./types",
                                     },
                                 },

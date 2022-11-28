@@ -4,7 +4,7 @@ export { default as RequiredAuth } from "./RequireAuth";
 import { User } from "oidc-client-ts";
 
 export function getUser() {
-    const key = `oidc.user:${process.env.AUTH_URL}:Web`;
+    const key = `oidc.user:${process.env.AUTH_URL}:web`;
     const oidcStorage = localStorage.getItem(key);
     if (!oidcStorage) {
         return sessionStorage.getItem(key);

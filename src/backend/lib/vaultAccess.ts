@@ -6,16 +6,17 @@ const { defaultProvider } = require("@aws-sdk/credential-provider-node");
 interface DBCredentials {
     readonly username: string;
     readonly password: string;
-    readonly database: string;
-    readonly proddb: string;
-    readonly devdb: string;
+    readonly name: string;
 }
 
-type APIDBCredentials = { blog?: DBCredentials; tests?: DBCredentials };
+type APIDBCredentials = {
+    prodInstance: string;
+    devInstance?: string;
+    [key: string]: DBCredentials;
+};
 
 const mutex = new Mutex();
-const creds: APIDBCredentials = {};
-let credsIsEmpty = true;
+const credsCache: { [key: string]: APIDBCredentials } = {};
 
 const awsRequestUrl = "https://sts.amazonaws.com/";
 const awsRequestBody = "Action=GetCallerIdentity&Version=2011-06-15";
@@ -77,9 +78,41 @@ const getVaultToken = async (http: typeof Axios) => {
     }
 };
 
-export const getCredentials = mutex.runExclusive(
-    async (): Promise<APIDBCredentials> => {
-        if (credsIsEmpty) {
+const requestRedis = async (db, http): APIDBCredentials => {
+    const results = await http.get(`/secret/data/${db}`);
+    return {
+        prodInstance: results.url,
+        [db]: {
+            username: results.username,
+            password: results.password,
+        },
+    };
+};
+
+const requestMongodb = async (http): APIDBCredentials => {
+    const results = await Promise.all([
+        http.get("/mongodb/creds/blog-rw"),
+        http.get("/mongodb/creds/payment-rw"),
+        ((http.defaults.headers.get["X-Vault-Control"] = "manual"),
+        http.get("/url/data/databases/frontend")),
+    ]);
+    return {
+        prodInstance: results[2].data.data.data.proddb,
+        devInstance: results[2].data.data.data.devdb,
+        blogdb: {
+            ...results[0].data,
+            name: results[2].data.data.data.blogdb,
+        },
+        paymentdb: {
+            ...results[1].data,
+            name: results[2].data.data.data.paymentdb,
+        },
+    };
+};
+
+export const getCredentials = (db: string) =>
+    mutex.runExclusive(async (): Promise<APIDBCredentials> => {
+        if (!credsCache[db]) {
             const headers: { [key: string]: string } = {
                 "X-API-Key": process.env.API_KEY ?? "",
             };
@@ -94,29 +127,19 @@ export const getCredentials = mutex.runExclusive(
 
                 console.log("Getting secrets");
 
+                http.defaults.headers.get["X-Vault-Control"] = "auto";
                 http.defaults.headers.get["X-Vault-Token"] = vaultToken ?? "";
-                const results = await Promise.all([
-                    http.get("/mongodb/creds/mongo-blog-rw"),
-                    http.get("/mongodb/creds/mongo-psychom-rw"),
-                    http.get("/url/data/database/frontend"),
-                ]);
-                creds.blog = {
-                    ...results[0].data.data,
-                    database: results[2].data.data.data.blog,
-                    proddb: results[2].data.data.data.blog_proddb,
-                    devdb: results[2].data.data.data.blog_devdb,
-                };
-                creds.tests = {
-                    ...results[1].data.data,
-                    database: results[2].data.data.data.tests,
-                    proddb: results[2].data.data.data.tests_proddb,
-                    devdb: results[2].data.data.data.tests_devdb,
-                };
-                credsIsEmpty = false;
+
+                let creds = {};
+                if (db === "mongodb") creds = await requestMongodb(http);
+                if (db === "app-redis-access")
+                    creds = await requestRedis(db, http);
+                credsCache[db] = creds;
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     console.log("HTTP Error");
                     if (error.response) {
+                        console.log("Response error");
                         console.log(error.response.status, error.response.data);
                         console.log(error.response.headers);
                     } else if (error.request) {
@@ -136,9 +159,9 @@ export const getCredentials = mutex.runExclusive(
                 }
                 throw "Vault access denied";
             }
-        } else {
-            console.log("Receiving credentials");
         }
-        return creds;
-    }
-);
+        console.log("Receiving credentials");
+        return credsCache[db];
+    });
+
+export type { APIDBCredentials };

@@ -46,7 +46,7 @@ module.exports = (env, args) => {
     const preconfig = {
         name: "web",
         mode: args.mode,
-        entry: "./src/index",
+        entry: "./src/frontend/index",
         output: {
             path: outputPath,
             filename: isProduction
@@ -99,8 +99,8 @@ module.exports = (env, args) => {
                 patterns: [
                     path.resolve(
                         __dirname,
-                        "src",
-                        "keycloak/silent-check-sso.html"
+                        "src/frontend",
+                        "silent-check-sso.html"
                     ),
                 ],
             }),

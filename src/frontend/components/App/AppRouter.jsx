@@ -3,6 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import MoonLoader from "react-spinners/MoonLoader";
 
+import "@App/styles/main.css";
+
 // Routes
 const Landing = React.lazy(() => import("components/areas/Landing"));
 const Hub = React.lazy(() => import("components/routes/Hub"));

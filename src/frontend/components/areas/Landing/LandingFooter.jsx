@@ -11,7 +11,9 @@ const LandingFooter = () => {
                         <h1 className="text-xl">CognitiveTesting</h1>
                         <div className="flex mt-4 space-x-4 text-gray-500 text-xl">
                             <AiFillTwitterCircle />
-                            <AiFillGithub />
+                            <a href="https://github.com/coremeridian/qlist">
+                                <AiFillGithub />
+                            </a>
                         </div>
                     </div>
                     <div className="grid grid-cols-1 gap-8 lg:col-span-2 sm:grid-cols-2 lg:flex lg:items-center lg:justify-end">

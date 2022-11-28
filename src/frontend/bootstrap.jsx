@@ -1,7 +1,7 @@
 import React from "react";
 import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App";
+import AppRouter from "@App/AppRouter";
 import Root from "@App";
 import { createStoreWithConfig } from "@App/store";
 import { fetchAuthConfig } from "@App/config";
@@ -21,7 +21,7 @@ if (module.hot) {
                 configReader={configReader}
             >
                 <BrowserRouter>
-                    <App />
+                    <AppRouter />
                 </BrowserRouter>
             </Root>
         </React.StrictMode>
@@ -37,7 +37,7 @@ if (module.hot) {
                 configReader={configReader}
             >
                 <BrowserRouter>
-                    <App />
+                    <AppRouter />
                 </BrowserRouter>
             </Root>
         </React.StrictMode>

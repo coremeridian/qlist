@@ -11,6 +11,8 @@ import { injectApplicationState } from "./helpers";
 import type { ConfigReader } from "@App/config";
 
 const { readFile } = require("fs/promises");
+const redisClient = (async () =>
+    await require("../server/db/redis/conn").connect("app-redis-access"))();
 
 interface ApplicationState {
     markup: string;
@@ -28,34 +30,39 @@ export const render = async (
     Tree: React.FC
 ): Promise<String> => {
     let html;
-
+    const markupStateKey = `page:${ctx.req.url}:${process.env.ETAG ?? "developement"
+        }`;
     try {
-        const context = {};
-        const stylesheets = new ServerStyleSheet();
-        global.window = {} as Window & typeof globalThis;
+        const cache = await redisClient;
+        if (!(html = await cache.get(markupStateKey))) {
+            const context = {};
+            const stylesheets = new ServerStyleSheet();
+            global.window = {} as Window & typeof globalThis;
 
-        html = await htmlFile;
-        const { store, preloadedState } = await reduxPersistStore(ctx);
-        const markupState = await renderFromStream(
-            stylesheets.collectStyles(
-                <Root
-                    store={store}
-                    configReader={configReader}
-                    helmetContext={context}
-                >
-                    <StaticRouter location={ctx.req.url ?? "/"}>
-                        <Tree />
-                    </StaticRouter>
-                </Root>
-            )
-        );
+            html = await htmlFile;
+            const { store, preloadedState } = await reduxPersistStore(ctx);
+            const markupState = await renderFromStream(
+                stylesheets.collectStyles(
+                    <Root
+                        store={store}
+                        configReader={configReader}
+                        helmetContext={context}
+                    >
+                        <StaticRouter location={ctx.req.url ?? "/"}>
+                            <Tree />
+                        </StaticRouter>
+                    </Root>
+                )
+            );
 
-        html = injectApplicationState(ctx, {
-            markup: html,
-            dataState: preloadedState,
-            markupState,
-            stylesheets,
-        });
+            html = injectApplicationState(ctx, {
+                markup: html,
+                dataState: preloadedState,
+                markupState,
+                stylesheets,
+            });
+            cache.setex(markupStateKey, html, 604800);
+        }
     } catch (error) {
         console.error("Render Error:", error);
     } finally {

@@ -1,4 +1,4 @@
-const serverConfig = require("./webpack.server");
+const serverConfig = require("./webpack.backend");
 const path = require("path");
 const { merge } = require("webpack-merge");
 

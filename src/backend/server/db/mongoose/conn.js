@@ -1,35 +1,60 @@
 const mongoose = require("mongoose");
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-const dbConstraint = "/?maxPoolSize=20&w=majority";
-
 let conns = {};
+
+const callWithRetry = async (call) => {
+    let resp = null;
+    for (let i = 0; i < 5; i++) {
+        try {
+            resp = await call();
+            console.log("Call succeeded!");
+            return resp;
+        } catch (err) {
+            console.log("Call failed: Retrying...");
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            if (i == 4) {
+                throw err;
+            }
+        }
+    }
+};
 
 module.exports.connect = async (model) => {
     let conn = conns[model];
     if (!conn) {
         try {
-            let options = {
-                useNewUrlParser: true,
-                serverSelectionTimeoutMS: 5000,
-            };
-            const creds = await require("../../../lib/vaultAccess")
-                .getCredentials;
-            const cred =
-                model === "blog"
-                    ? creds.blog
+            const creds =
+                await require("../../../lib/vaultAccess").getCredentials(
+                    "mongodb"
+                );
+            const cred = {
+                prodInstance: creds.prodInstance,
+                devInstance: creds.devInstance,
+                ...(model === "blog"
+                    ? creds.blogdb
                     : model === "pricings"
-                        ? creds.tests
-                        : {};
-            const uri =
-                ((options = {
-                    user: cred.username,
-                    pass: cred.password,
-                    dbName: isDevelopment ? cred.devdb : cred.proddb,
-                    ...options,
-                }),
-                    cred.database + dbConstraint);
-            conn = await mongoose.createConnection(uri, options).asPromise();
+                        ? creds.paymentdb
+                        : {}),
+            };
+
+            console.log("Cred", cred);
+
+            const url = new URL(cred.prodInstance);
+            url.username = encodeURIComponent(cred.username);
+            url.password = encodeURIComponent(cred.password);
+            url.pathname = cred.name;
+            url.search = url.search + "&w=majority";
+
+            console.log(url);
+
+            conn = await callWithRetry(() =>
+                mongoose
+                    .createConnection(url.href, {
+                        useNewUrlParser: true,
+                        useUnifiedTopology: true,
+                    })
+                    .asPromise()
+            );
             conn.on(
                 "error",
                 console.error.bind(console, "MongoDB connection error:")
@@ -43,7 +68,7 @@ module.exports.connect = async (model) => {
             conn.model(model.name, model.schema);
             conns[model] = conn;
         } catch (error) {
-            console.log("Mongo instantiation error:", error);
+            console.log(`Mongo instantiation error[${model}]:`, error);
         }
     }
 
