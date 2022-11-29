@@ -9,8 +9,8 @@ const setHeaders = (ctx: Context, reportOnly: boolean) => {
         [reportOnly
             ? "Content-Security-Policy-Report-Only"
             : "Content-Security-Policy"]: WebAppPolicy.generateContentSecurityPolicy(
-                ctx.requestId
-            ),
+            ctx.requestId
+        ),
         "Strict-Transport-Security":
             "max-age=31536000; includeSubDomains; preload",
         "X-Content-Type-Options": "nosniff",
@@ -31,9 +31,9 @@ const injectApplicationState = (
             '<div id="root"></div>',
             `<div id="root">${markupState ?? ""}</div>`
         )
-        .replaceAll("**CSP_NONCE**", ctx.requestId)
+        .replaceAll("CSP_NONCE", ctx.requestId)
         .replace(
-            "**PRELOADED_STATE**",
+            "PRELOADED_STATE",
             JSON.stringify(dataState).replace(/</g, "\\u003c")
         )
         .replace("</head>", `${stylesheets.getStyleTags()}</head>`);

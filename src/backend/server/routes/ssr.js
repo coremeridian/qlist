@@ -8,7 +8,7 @@ const ssr = new require("@koa/router")();
 ssr.use(async (ctx, next) => {
     ctx.requestId = crypto
         .createHash("sha1")
-        .update(crypto.randomUUID())
+        .update(crypto.randomBytes(20))
         .digest("base64");
     await next();
 }).use(async (ctx, next) => {

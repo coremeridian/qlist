@@ -24,12 +24,12 @@ Object.setPrototypeOf(
                             headTags.forEach(
                                 (x) =>
                                     x.tagName === "script" &&
-                                    (x.attributes.nonce = "**CSP_NONCE**")
+                                    (x.attributes.nonce = "CSP_NONCE")
                             );
                             bodyTags.forEach(
                                 (x) =>
                                     x.tagName === "script" &&
-                                    (x.attributes.nonce = "**CSP_NONCE**")
+                                    (x.attributes.nonce = "CSP_NONCE")
                             );
                             callbackify(null, data);
                         }
