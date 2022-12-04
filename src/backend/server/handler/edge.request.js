@@ -44,8 +44,11 @@ export const handler = async (event, context) => {
     const host = request.headers.host[0].value;
 
     try {
-        const path = host.split(".xyz/");
-        if (path.length >= 2) {
+        const tld = ".xyz/";
+        if (
+            host.match(tld) &&
+            host.substring(host.indexOf(tld) + tld.length).length > 0
+        ) {
             result = await run(event, context);
         } else {
             result = await getRedirect(host, request);
