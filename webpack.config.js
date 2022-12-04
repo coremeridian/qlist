@@ -50,8 +50,11 @@ module.exports = (env, args) => {
         output: {
             path: outputPath,
             filename: isProduction
-                ? "static/bundle.min.[contenthash].js"
-                : "static/bundle.min.[fullhash].js",
+                ? "static/js/[name].[contenthash].js"
+                : "static/js/[name].[fullhash].js",
+            chunkFilename: isProduction
+                ? "static/js/[name].chunk.[contenthash].js"
+                : "static/js/[name].chunk.[fullhash].js",
             publicPath: "/",
             library: { name: "webapp", type: "umd" },
             clean: true,
